@@ -116,7 +116,7 @@ pure.pretest <- function(i,otu,method = "LN",val = "DNA",xm="caries_free",ranef 
 #'
 #' @param i ith genera or species specific taxonomic units which are used for testing
 #' @param simu Operational taxonomic unit table
-#' @param all the test we want to used for pre-analysis, \code{method = "LB"} represents logistics Beta test, while \code{method = "LN"} represents log Normal test
+#' @param all Log ratio list containing every genera or species
 #' @param xm the main predictor we use
 #' @param method a character string indicating which correlation coefficient is to be used for the test. One of "pearson", "kendall", or "spearman", can be abbreviated.
 #'
@@ -150,7 +150,7 @@ cor.otu <- function(i,simu,all,xm = "t3c", method = "pearson")
 #'
 #' @param i ith genera or species specific taxonomic units which are used for testing
 #' @param simu Operational taxonomic unit table
-#' @param all the test we want to used for pre-analysis, \code{method = "LB"} represents logistics Beta test, while \code{method = "LN"} represents log Normal test
+#' @param all Log ratio list containing every genera or species
 #' @param xm the main predictor we use
 #' @param reg kind of regression that we want to see the p-value of it, it has \code{linear} and \code{logistics} two choices.
 #' @param ranef whether we should regard batch as random effect
@@ -242,8 +242,8 @@ ratio.test <- function(i,simu,all,xm="t3c",reg = "linear",ranef = TRUE,df = df)
 #'
 #' @param i ith genera or species specific taxonomic units which are used for testing
 #' @param simu Operational taxonomic unit table
-#' @param all the test we want to used for pre-analysis, \code{method = "LB"} represents logistics Beta test, while \code{method = "LN"} represents log Normal test
-#' @param formula0 a two-sided linear formula object describing all parts of the model. The main predictor \textbf{should be written in the first place} after tilde.
+#' @param all Log ratio list containing every genera or species
+#' @param formula0 a two-sided linear formula object describing all parts of the model. The main predictor should be written in the first place after tilde.
 #' @param bindex the peak status of ith genera or species of otu, it has three values: \code{left},\code{right} and \code{both}, which refers to left-only peak, right-only peak and two peaks.
 #'
 #' @return Coefficient estimate and p-value of each peak
@@ -284,4 +284,39 @@ GMR.peaktest <- function(i,simu,all,formula0 = "ratio ~ t3c + age",bindex,df = d
   }
 }
 
+#' AUC probability and empirical p-value calculation
+#'
+#' @param x numeric vector represents 1st sample
+#' @param y numeric vector represents 2nd sample
+#' @param N sampling times with replacement
+#' @param rdm random seed
+#' @param p.output indicator whether to return p-value
+#'
+#' @return AUC probability estimates (or with p-value)
+#'
+#' @examples
+#' ecc.ratio =  sapply(1:nrow(otu),function(x){log_ratio(otu[x,which(meta$cariesfree==0),],version=1,epsilon=1)})
+#' free.ratio =  sapply(1:nrow(otu),function(x){log_ratio(otu[x,which(meta$cariesfree==1),],version=1,epsilon=1)})
+#' auc_prob_pvalue(ecc.ratio[[3]],free.ratio[[3]],rdm = i)
+#'
+#' @export
+#'
 
+auc_calculate <- function(x,y,N=5000,rdm,p.output = FALSE)
+{
+  set.seed(rdm)
+  pos <- sample(x, N, replace=TRUE)
+  neg <- sample(y, N, replace=TRUE)
+  xhat = (sum(pos > neg) + sum(pos == neg)/2) / N
+  x = xhat
+  if(p.output == TRUE)
+  {
+    g1hat <- sapply(1:N,function(i){(sum(pos > neg[i]) + sum(pos == neg[i])/2) /N - xhat})
+    g2hat <- sapply(1:N,function(i){(sum(pos[i] > neg) + sum(pos[i] == neg)/2) /N - xhat})
+    sigm <- mean(g1hat^2+g2hat^2)/(N-1)
+    pval <- 2-2*pnorm(abs(xhat-0.5)/sqrt(sigm))
+    x = c(xhat, pval)
+  }
+   return(x)
+
+}

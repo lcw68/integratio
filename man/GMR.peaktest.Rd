@@ -11,9 +11,9 @@ GMR.peaktest(i, simu, all, formula0 = "ratio ~ t3c + age", bindex, df = df)
 
 \item{simu}{Operational taxonomic unit table}
 
-\item{all}{the test we want to used for pre-analysis, \code{method = "LB"} represents logistics Beta test, while \code{method = "LN"} represents log Normal test}
+\item{all}{Log ratio list containing every genera or species}
 
-\item{formula0}{a two-sided linear formula object describing all parts of the model. The main predictor \textbf{should be written in the first place} after tilde.}
+\item{formula0}{a two-sided linear formula object describing all parts of the model. The main predictor should be written in the first place after tilde.}
 
 \item{bindex}{the peak status of ith genera or species of otu, it has three values: \code{left},\code{right} and \code{both}, which refers to left-only peak, right-only peak and two peaks.}
 }

@@ -11,7 +11,7 @@ ratio.test(i, simu, all, xm = "t3c", reg = "linear", ranef = TRUE, df = df)
 
 \item{simu}{Operational taxonomic unit table}
 
-\item{all}{the test we want to used for pre-analysis, \code{method = "LB"} represents logistics Beta test, while \code{method = "LN"} represents log Normal test}
+\item{all}{Log ratio list containing every genera or species}
 
 \item{xm}{the main predictor we use}
 
