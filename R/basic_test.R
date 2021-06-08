@@ -152,9 +152,10 @@ cor.otu <- function(i,simu,all,xm = "t3c", method = "pearson")
 #' @param simu Operational taxonomic unit table
 #' @param all Log ratio list containing every genera or species
 #' @param xm the main predictor we use
-#' @param reg kind of regression that we want to see the p-value of it, it has \code{linear} and \code{logistics} two choices.
+#' @param reg kind of regression that we want to see the p-value of it, it has \code{linear} and \code{logistics} two choices. For \code{logistics} the outcome would become whether RNA equals to zero.
 #' @param ranef whether we should regard batch as random effect
 #' @param df meta data we use
+#' @param firth_correction whether we need Firth Logistics Regression for \code{reg="logistics"}
 #'
 #' @return Coefficient estimate and p-value of the main predictor
 #'
@@ -164,10 +165,11 @@ cor.otu <- function(i,simu,all,xm = "t3c", method = "pearson")
 #'
 #' @importFrom lmerTest lmer
 #' @importFrom lme4 glmer
+#' @importFrom logistf logistf
 #'
 #' @export
 #'
-ratio.test <- function(i,simu,all,xm="t3c",reg = "linear",ranef = TRUE,df = df)
+ratio.test <- function(i,simu,all,xm="t3c",reg = "linear",ranef = TRUE,df = df, firth_correction = FALSE)
 {
   df1 <- newdf(i,simu,all,df = df)
   df1$ratioindex <- ifelse(simu[i,which(simu[i,,1]>0),2] == 0, 0, 1)
@@ -199,8 +201,16 @@ ratio.test <- function(i,simu,all,xm="t3c",reg = "linear",ranef = TRUE,df = df)
         }
         else
         {
-          mod <- glm(ratioindex ~get(xm)+age,family="binomial", data = df1)
-          x = summary(mod)$coefficients[2,c("Estimate","Pr(>|z|)")]
+          if(xm == "caries_free" & firth_correction ==TRUE)
+          {
+            mod <-  logistf::logistf(ratioindex ~ get(xm)+batch+age,data = df1)
+            x = c(mod$coefficients[2],mod$prob[2])
+          }
+          else{
+            mod <- glm(ratioindex ~get(xm)+age,family="binomial", data = df1)
+            x = summary(mod)$coefficients[2,c("Estimate","Pr(>|z|)")]
+
+          }
 
         }
       }
@@ -223,17 +233,26 @@ ratio.test <- function(i,simu,all,xm="t3c",reg = "linear",ranef = TRUE,df = df)
         if(ranef == TRUE)
         {
           mod <- lme4::glmer(ratioindex ~get(xm)+age+(1|batch),family=binomial(), data = df1)
+          x = summary(mod)$coefficients[2,c("Estimate","Pr(>|z|)")]
         }
         else
         {
-          mod <- glm(ratioindex ~get(xm)+age+batch,family="binomial", data = df1)
+          if(xm == "caries_free" & firth_correction ==TRUE)
+          {
+            mod <-  logistf::logistf(ratioindex ~ get(xm)+batch+age,data = df1)
+            x = c(mod$coefficients[2],mod$prob[2])
+          }
+          else{
+            mod <- glm(ratioindex ~get(xm)+age+batch,family="binomial", data = df1)
+            x = summary(mod)$coefficients[2,c("Estimate","Pr(>|z|)")]
+          }
         }
-        x = summary(mod)$coefficients[2,c("Estimate","Pr(>|z|)")]
+
 
       }
     }
   }
-
+  names(x) = c("coefficient estimates","p-value")
   return(x)
 }
 

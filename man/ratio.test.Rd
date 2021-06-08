@@ -4,7 +4,16 @@
 \alias{ratio.test}
 \title{Ratio level test}
 \usage{
-ratio.test(i, simu, all, xm = "t3c", reg = "linear", ranef = TRUE, df = df)
+ratio.test(
+  i,
+  simu,
+  all,
+  xm = "t3c",
+  reg = "linear",
+  ranef = TRUE,
+  df = df,
+  firth_correction = FALSE
+)
 }
 \arguments{
 \item{i}{ith genera or species specific taxonomic units which are used for testing}
@@ -15,11 +24,13 @@ ratio.test(i, simu, all, xm = "t3c", reg = "linear", ranef = TRUE, df = df)
 
 \item{xm}{the main predictor we use}
 
-\item{reg}{kind of regression that we want to see the p-value of it, it has \code{linear} and \code{logistics} two choices.}
+\item{reg}{kind of regression that we want to see the p-value of it, it has \code{linear} and \code{logistics} two choices. For \code{logistics} the outcome would become whether RNA equals to zero.}
 
 \item{ranef}{whether we should regard batch as random effect}
 
 \item{df}{meta data we use}
+
+\item{firth_correction}{whether we need Firth Logistics Regression for \code{reg="logistics"}}
 }
 \value{
 Coefficient estimate and p-value of the main predictor
